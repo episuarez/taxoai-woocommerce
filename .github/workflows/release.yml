@@ -38,7 +38,8 @@ jobs:
       - name: Build plugin zip
         run: |
           mkdir -p build/woocommerce-taxoai
-          cp -r includes assets languages woocommerce-taxoai.php uninstall.php readme.txt build/woocommerce-taxoai/
+          cp -r includes assets woocommerce-taxoai.php uninstall.php readme.txt build/woocommerce-taxoai/
+          [ -d languages ] && cp -r languages build/woocommerce-taxoai/
           cd build && zip -r ../woocommerce-taxoai-${{ steps.version.outputs.version }}.zip woocommerce-taxoai/
 
       - name: Create GitHub Release
