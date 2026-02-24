@@ -12,6 +12,33 @@ require_once dirname( __DIR__ ) . '/vendor/autoload.php';
 
 WP_Mock::bootstrap();
 
+// Stub WP_Error since WP_Mock does not provide it.
+if ( ! class_exists( 'WP_Error' ) ) {
+    class WP_Error {
+        protected $code;
+        protected $message;
+        protected $data;
+
+        public function __construct( $code = '', $message = '', $data = '' ) {
+            $this->code    = $code;
+            $this->message = $message;
+            $this->data    = $data;
+        }
+
+        public function get_error_code() {
+            return $this->code;
+        }
+
+        public function get_error_message() {
+            return $this->message;
+        }
+
+        public function get_error_data() {
+            return $this->data;
+        }
+    }
+}
+
 // Define constants used by the plugin.
 if ( ! defined( 'ABSPATH' ) ) {
     define( 'ABSPATH', '/tmp/wordpress/' );

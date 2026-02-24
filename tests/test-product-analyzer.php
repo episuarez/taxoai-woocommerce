@@ -68,6 +68,7 @@ class Test_TaxoAI_Product_Analyzer extends TestCase {
      */
     private function create_mock_product() {
         $product = \Mockery::mock( 'WC_Product' );
+        $product->shouldReceive( 'get_id' )->andReturn( 42 );
         $product->shouldReceive( 'get_name' )->andReturn( 'Blue Cotton T-Shirt' );
         $product->shouldReceive( 'get_description' )->andReturn( 'A comfortable blue cotton t-shirt.' );
         $product->shouldReceive( 'get_price' )->andReturn( '29.99' );
