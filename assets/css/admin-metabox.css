@@ -1,0 +1,263 @@
+/**
+ * TaxoAI Admin Styles.
+ *
+ * Styles for the product metabox, bulk analyzer page, and product list columns.
+ *
+ * @package TaxoAI
+ */
+
+/* ── Metabox Sections ─────────────────────────────────────────── */
+
+#taxoai-metabox-wrapper .taxoai-section {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+#taxoai-metabox-wrapper .taxoai-section:last-of-type {
+    border-bottom: none;
+}
+
+#taxoai-metabox-wrapper .taxoai-label {
+    font-weight: 600;
+    color: #1d2327;
+    display: inline;
+}
+
+#taxoai-metabox-wrapper .taxoai-seo-item {
+    margin: 4px 0;
+    font-size: 12px;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+#taxoai-metabox-wrapper .taxoai-empty {
+    color: #757575;
+    font-style: italic;
+}
+
+#taxoai-metabox-wrapper .taxoai-timestamp {
+    color: #757575;
+    font-size: 11px;
+    margin-top: 8px;
+}
+
+/* ── Confidence Badges ────────────────────────────────────────── */
+
+.taxoai-confidence-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.taxoai-confidence-high {
+    background: #d4edda;
+    color: #155724;
+}
+
+.taxoai-confidence-medium {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.taxoai-confidence-low {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* ── Attribute Pills ──────────────────────────────────────────── */
+
+.taxoai-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.taxoai-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.6;
+}
+
+.taxoai-pill-color {
+    background: #e8eaf6;
+    color: #283593;
+}
+
+.taxoai-pill-material {
+    background: #efebe9;
+    color: #4e342e;
+}
+
+.taxoai-pill-gender {
+    background: #fce4ec;
+    color: #880e4f;
+}
+
+.taxoai-pill-style {
+    background: #e0f7fa;
+    color: #006064;
+}
+
+/* ── Keyword List ─────────────────────────────────────────────── */
+
+.taxoai-keyword-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.taxoai-keyword-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 0;
+    font-size: 12px;
+    border-bottom: 1px solid #f9f9f9;
+}
+
+.taxoai-keyword-item:last-child {
+    border-bottom: none;
+}
+
+.taxoai-keyword-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.taxoai-volume-indicator {
+    flex-shrink: 0;
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 6px;
+}
+
+.taxoai-volume-high {
+    background: #c8e6c9;
+    color: #2e7d32;
+}
+
+.taxoai-volume-medium {
+    background: #fff9c4;
+    color: #f57f17;
+}
+
+.taxoai-volume-low {
+    background: #f0f0f1;
+    color: #757575;
+}
+
+/* ── Background Quality Warning ───────────────────────────────── */
+
+.taxoai-bg-warning {
+    background: #fff3cd;
+    padding: 4px 8px;
+    border-radius: 3px;
+    border-left: 3px solid #dba617;
+}
+
+/* ── Loading Spinner ──────────────────────────────────────────── */
+
+.taxoai-loading {
+    text-align: center;
+    padding: 8px 0;
+    color: #757575;
+}
+
+.taxoai-loading .spinner {
+    vertical-align: middle;
+}
+
+/* ── Error Message ────────────────────────────────────────────── */
+
+.taxoai-error p {
+    margin: 4px 0;
+    padding: 6px 10px;
+    background: #f8d7da;
+    border-left: 3px solid #d63638;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+/* ── Taxonomy Search ──────────────────────────────────────────── */
+
+.taxoai-taxonomy-results {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.taxoai-taxonomy-item {
+    font-size: 12px;
+}
+
+/* ── Bulk Analyzer Page ───────────────────────────────────────── */
+
+.taxoai-bulk-progress {
+    margin-bottom: 16px;
+}
+
+.taxoai-progress-bar-container {
+    background: #f0f0f1;
+    border-radius: 4px;
+    height: 24px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.taxoai-progress-bar {
+    height: 100%;
+    background: #2271b1;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+/* ── Status Labels ────────────────────────────────────────────── */
+
+.taxoai-status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.taxoai-status-analyzed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.taxoai-status-pending {
+    background: #f0f0f1;
+    color: #757575;
+}
+
+.taxoai-status-low {
+    background: #fff3cd;
+    color: #856404;
+}
+
+/* ── Product List Column ──────────────────────────────────────── */
+
+.column-taxoai {
+    width: 100px;
+}
+
+.taxoai-col-icon {
+    vertical-align: middle;
+}
+
+.taxoai-quick-analyze {
+    font-size: 12px;
+}

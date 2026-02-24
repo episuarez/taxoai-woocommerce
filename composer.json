@@ -1,0 +1,38 @@
+{
+    "name": "taxoai/woocommerce-taxoai",
+    "description": "TaxoAI for WooCommerce - Auto-categorize products and generate SEO content using AI.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "10up/wp_mock": "^1.0",
+        "phpunit/phpunit": "^9.6",
+        "mockery/mockery": "^1.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "TaxoAI\\": "includes/"
+        },
+        "classmap": [
+            "includes/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "TaxoAI\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit --configuration tests/phpunit.xml",
+        "test-coverage": "phpunit --configuration tests/phpunit.xml --coverage-html coverage"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
+}
