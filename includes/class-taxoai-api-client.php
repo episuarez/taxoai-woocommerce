@@ -120,22 +120,75 @@ class TaxoAI_API_Client {
     }
 
     /**
+     * Make an HTTP request with exponential backoff retry.
+     *
+     * Retries on 429 (rate limit) and 5xx (server errors) up to $max_tries times.
+     * Delays: 1s → 2s → 4s between attempts.
+     *
+     * @param string $method     HTTP method ('POST' or 'GET').
+     * @param string $url        Full URL to request.
+     * @param array  $args       wp_remote_* arguments (headers, body, timeout).
+     * @param string $context    Human-readable context for error messages.
+     * @param int    $max_tries  Maximum number of attempts (default 3).
+     * @return array|WP_Error Parsed body on success, WP_Error on failure.
+     */
+    private function request_with_retry( $method, $url, $args, $context = '', $max_tries = 3 ) {
+        $attempt = 0;
+        $delay   = 1; // seconds
+
+        while ( $attempt < $max_tries ) {
+            $attempt++;
+
+            if ( 'POST' === $method ) {
+                $response = wp_remote_post( $url, $args );
+            } else {
+                $response = wp_remote_get( $url, $args );
+            }
+
+            // On cURL/WP_Error, only retry on transient network errors.
+            if ( is_wp_error( $response ) ) {
+                if ( $attempt < $max_tries ) {
+                    sleep( $delay );
+                    $delay *= 2;
+                    continue;
+                }
+                return $this->parse_response( $response, $context );
+            }
+
+            $code = wp_remote_retrieve_response_code( $response );
+
+            // Retry on 429 or 5xx.
+            if ( ( 429 === $code || $code >= 500 ) && $attempt < $max_tries ) {
+                $retry_after = wp_remote_retrieve_header( $response, 'retry-after' );
+                $wait        = $retry_after ? (int) $retry_after : $delay;
+                sleep( min( $wait, 10 ) ); // cap at 10s for UX
+                $delay *= 2;
+                continue;
+            }
+
+            return $this->parse_response( $response, $context );
+        }
+
+        return $this->parse_response( $response, $context ); // last attempt result
+    }
+
+    /**
      * Analyze a product via the TaxoAI API.
      *
      * @param array $data Product data: name, description, price, image_urls, language, analyze_images.
      * @return array|WP_Error Parsed response or error.
      */
     public function analyze_product( array $data ) {
-        $response = wp_remote_post(
+        return $this->request_with_retry(
+            'POST',
             TAXOAI_API_URL . '/v1/products/analyze',
             array(
                 'timeout' => self::TIMEOUT,
                 'headers' => $this->get_headers(),
                 'body'    => wp_json_encode( $data ),
-            )
+            ),
+            'analyze_product'
         );
-
-        return $this->parse_response( $response, 'analyze_product' );
     }
 
     /**
@@ -144,15 +197,15 @@ class TaxoAI_API_Client {
      * @return array|WP_Error Parsed response or error.
      */
     public function get_usage() {
-        $response = wp_remote_get(
+        return $this->request_with_retry(
+            'GET',
             TAXOAI_API_URL . '/v1/usage',
             array(
                 'timeout' => self::TIMEOUT,
                 'headers' => $this->get_headers(),
-            )
+            ),
+            'get_usage'
         );
-
-        return $this->parse_response( $response, 'get_usage' );
     }
 
     /**
@@ -171,15 +224,15 @@ class TaxoAI_API_Client {
             TAXOAI_API_URL . '/v1/taxonomies/search'
         );
 
-        $response = wp_remote_get(
+        return $this->request_with_retry(
+            'GET',
             $url,
             array(
                 'timeout' => self::TIMEOUT,
                 'headers' => $this->get_headers(),
-            )
+            ),
+            'search_taxonomies'
         );
-
-        return $this->parse_response( $response, 'search_taxonomies' );
     }
 
     /**
@@ -189,16 +242,16 @@ class TaxoAI_API_Client {
      * @return array|WP_Error Parsed response containing job_id, or error.
      */
     public function submit_batch( array $products ) {
-        $response = wp_remote_post(
+        return $this->request_with_retry(
+            'POST',
             TAXOAI_API_URL . '/v1/products/batch',
             array(
                 'timeout' => self::TIMEOUT,
                 'headers' => $this->get_headers(),
                 'body'    => wp_json_encode( array( 'products' => $products ) ),
-            )
+            ),
+            'submit_batch'
         );
-
-        return $this->parse_response( $response, 'submit_batch' );
     }
 
     /**
@@ -208,14 +261,14 @@ class TaxoAI_API_Client {
      * @return array|WP_Error Parsed response or error.
      */
     public function get_job( $job_id ) {
-        $response = wp_remote_get(
+        return $this->request_with_retry(
+            'GET',
             TAXOAI_API_URL . '/v1/jobs/' . rawurlencode( $job_id ),
             array(
                 'timeout' => self::TIMEOUT,
                 'headers' => $this->get_headers(),
-            )
+            ),
+            'get_job'
         );
-
-        return $this->parse_response( $response, 'get_job' );
     }
 }
