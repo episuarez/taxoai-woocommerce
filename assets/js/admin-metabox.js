@@ -12,6 +12,7 @@
 
     var $wrapper,
         $analyzeBtn,
+        $undoBtn,
         $loading,
         $errorDiv,
         $resultsDiv,
@@ -25,6 +26,7 @@
     function init() {
         $wrapper          = $('#taxoai-metabox-wrapper');
         $analyzeBtn       = $('#taxoai-analyze-btn');
+        $undoBtn          = $('#taxoai-undo-btn');
         $loading          = $('#taxoai-loading');
         $errorDiv         = $('#taxoai-error');
         $resultsDiv       = $('#taxoai-metabox-results');
@@ -33,6 +35,11 @@
 
         // Analyze button.
         $analyzeBtn.on('click', handleAnalyze);
+
+        // Undo button (only present if a backup exists).
+        if ($undoBtn.length) {
+            $undoBtn.on('click', handleUndo);
+        }
 
         // Taxonomy search with debounce.
         $taxonomyInput.on('input', function () {
@@ -202,6 +209,58 @@
         }
 
         $resultsDiv.html(html);
+    }
+
+    /**
+     * Handle the "Undo Last Analysis" button click.
+     */
+    function handleUndo() {
+        var productId  = $wrapper.data('product-id');
+        var backedUpAt = $undoBtn.data('backed-up-at') || '';
+        var confirmMsg = taxoai_metabox.i18n.undo_confirm;
+
+        if (backedUpAt) {
+            confirmMsg += '\n(' + backedUpAt + ')';
+        }
+
+        if (!confirm(confirmMsg)) {
+            return;
+        }
+
+        hideError();
+        $undoBtn.prop('disabled', true).text(taxoai_metabox.i18n.undoing);
+        $analyzeBtn.prop('disabled', true);
+
+        $.ajax({
+            url:      taxoai_metabox.ajax_url,
+            type:     'POST',
+            dataType: 'json',
+            data: {
+                action:     'taxoai_undo_analysis',
+                nonce:      taxoai_metabox.nonce,
+                product_id: productId
+            },
+            success: function (response) {
+                if (response.success) {
+                    $undoBtn.text(taxoai_metabox.i18n.undo_success);
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    var msg = response.data && response.data.message
+                        ? response.data.message
+                        : taxoai_metabox.i18n.error;
+                    showError(msg);
+                    $undoBtn.prop('disabled', false).text(taxoai_metabox.i18n.undo_confirm.split('?')[0] + '?');
+                    $analyzeBtn.prop('disabled', false);
+                }
+            },
+            error: function () {
+                showError(taxoai_metabox.i18n.error);
+                $undoBtn.prop('disabled', false);
+                $analyzeBtn.prop('disabled', false);
+            }
+        });
     }
 
     /**

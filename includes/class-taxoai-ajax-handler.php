@@ -211,6 +211,78 @@ class TaxoAI_Ajax_Handler {
     }
 
     /**
+     * AJAX: Undo the last TaxoAI analysis (restore pre-analysis backup).
+     */
+    public function undo_analysis() {
+        check_ajax_referer( 'taxoai_nonce', 'nonce' );
+
+        if ( ! current_user_can( 'edit_products' ) ) {
+            wp_send_json_error( array(
+                'message' => __( 'You do not have permission to perform this action.', 'woocommerce-taxoai' ),
+            ), 403 );
+        }
+
+        $product_id = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
+
+        if ( ! $product_id ) {
+            wp_send_json_error( array(
+                'message' => __( 'Invalid product ID.', 'woocommerce-taxoai' ),
+            ), 400 );
+        }
+
+        $backup = get_post_meta( $product_id, '_taxoai_pre_analysis_backup', true );
+
+        if ( empty( $backup ) || ! is_array( $backup ) ) {
+            wp_send_json_error( array(
+                'message' => __( 'No backup found for this product.', 'woocommerce-taxoai' ),
+            ), 404 );
+        }
+
+        $product = wc_get_product( $product_id );
+        if ( ! $product ) {
+            wp_send_json_error( array(
+                'message' => __( 'Product not found.', 'woocommerce-taxoai' ),
+            ), 404 );
+        }
+
+        // Restore product title.
+        if ( ! empty( $backup['post_title'] ) ) {
+            $product->set_name( sanitize_text_field( $backup['post_title'] ) );
+            $product->save();
+        }
+
+        // Restore categories.
+        if ( isset( $backup['category_ids'] ) && is_array( $backup['category_ids'] ) ) {
+            $product->set_category_ids( array_map( 'absint', $backup['category_ids'] ) );
+            $product->save();
+        }
+
+        // Restore raw WooCommerce attributes.
+        if ( isset( $backup['raw_attributes'] ) ) {
+            update_post_meta( $product_id, '_product_attributes', $backup['raw_attributes'] );
+        }
+
+        // Restore SEO plugin meta.
+        if ( ! empty( $backup['seo_meta'] ) && is_array( $backup['seo_meta'] ) ) {
+            foreach ( $backup['seo_meta'] as $meta_key => $meta_value ) {
+                update_post_meta( $product_id, sanitize_key( $meta_key ), $meta_value );
+            }
+        }
+
+        // Remove TaxoAI analysis meta so the metabox shows "not analyzed".
+        delete_post_meta( $product_id, '_taxoai_analysis_result' );
+        delete_post_meta( $product_id, '_taxoai_analyzed_at' );
+        delete_post_meta( $product_id, '_taxoai_confidence' );
+        delete_post_meta( $product_id, '_taxoai_google_category' );
+        delete_post_meta( $product_id, '_taxoai_google_category_id' );
+        delete_post_meta( $product_id, '_taxoai_pre_analysis_backup' );
+
+        wp_send_json_success( array(
+            'message' => __( 'Analysis undone. Product restored to its previous state.', 'woocommerce-taxoai' ),
+        ) );
+    }
+
+    /**
      * AJAX: Poll a batch job status.
      */
     public function poll_job() {

@@ -34,6 +34,13 @@
             $('.taxoai-product-checkbox').prop('checked', checked);
         });
 
+        // Pre-select products passed via URL (from the product list bulk action).
+        if (taxoai_bulk.query_product_ids && taxoai_bulk.query_product_ids.length) {
+            $.each(taxoai_bulk.query_product_ids, function (_, id) {
+                $('.taxoai-product-checkbox[value="' + id + '"]').prop('checked', true);
+            });
+        }
+
         // Analyze selected.
         $analyzeBtn.on('click', handleBulkAnalyze);
     }
@@ -119,11 +126,11 @@
 
                     updateProgress(processed, total);
 
-                    if ('completed' === data.status || 'failed' === data.status) {
+                    if ('done' === data.status || 'failed' === data.status) {
                         clearInterval(pollInterval);
                         pollInterval = null;
 
-                        if ('completed' === data.status) {
+                        if ('done' === data.status) {
                             $progressText.text(taxoai_bulk.i18n.completed + ' (' + processed + '/' + total + ')');
                             // Reload after a short delay so the user sees the completed state.
                             setTimeout(function () {

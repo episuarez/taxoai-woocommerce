@@ -123,6 +123,9 @@ class TaxoAI_Product_Analyzer {
         // Store the raw result.
         $this->store_result( $product_id, $result );
 
+        // Save a backup of the current product state before applying.
+        $this->save_pre_analysis_backup( $product_id );
+
         // Apply results based on confidence threshold.
         $this->apply_result( $product_id, $result );
 
@@ -196,6 +199,52 @@ class TaxoAI_Product_Analyzer {
         }
 
         return $urls;
+    }
+
+    /**
+     * Save a snapshot of the product state before applying analysis results.
+     * Stored in _taxoai_pre_analysis_backup so it can be restored via "Undo".
+     *
+     * @param int $product_id Product ID.
+     */
+    private function save_pre_analysis_backup( $product_id ) {
+        $product = wc_get_product( $product_id );
+        if ( ! $product ) {
+            return;
+        }
+
+        // Capture WooCommerce categories.
+        $category_ids = $product->get_category_ids();
+
+        // Capture WooCommerce attributes.
+        $raw_attributes = get_post_meta( $product_id, '_product_attributes', true );
+
+        // Capture SEO plugin meta (Yoast / Rank Math).
+        $seo_backup = array();
+        $seo_keys   = array(
+            '_yoast_wpseo_title',
+            '_yoast_wpseo_metadesc',
+            'rank_math_title',
+            'rank_math_description',
+            '_aioseop_title',
+            '_aioseop_description',
+        );
+        foreach ( $seo_keys as $key ) {
+            $value = get_post_meta( $product_id, $key, true );
+            if ( '' !== $value ) {
+                $seo_backup[ $key ] = $value;
+            }
+        }
+
+        $backup = array(
+            'post_title'       => $product->get_name(),
+            'category_ids'     => $category_ids,
+            'raw_attributes'   => $raw_attributes ?: array(),
+            'seo_meta'         => $seo_backup,
+            'backed_up_at'     => current_time( 'mysql' ),
+        );
+
+        update_post_meta( $product_id, '_taxoai_pre_analysis_backup', $backup );
     }
 
     /**

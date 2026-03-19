@@ -172,6 +172,11 @@ class TaxoAI_Plugin {
         add_action( 'wp_ajax_taxoai_search_taxonomy', array( $this->ajax_handler, 'search_taxonomy' ) );
         add_action( 'wp_ajax_taxoai_bulk_analyze', array( $this->ajax_handler, 'bulk_analyze' ) );
         add_action( 'wp_ajax_taxoai_poll_job', array( $this->ajax_handler, 'poll_job' ) );
+        add_action( 'wp_ajax_taxoai_undo_analysis', array( $this->ajax_handler, 'undo_analysis' ) );
+
+        // Bulk action on product list: "Analyze with TaxoAI".
+        add_filter( 'bulk_actions-edit-product', array( $this, 'register_bulk_action' ) );
+        add_filter( 'handle_bulk_actions-edit-product', array( $this, 'handle_bulk_action' ), 10, 3 );
 
         // Product list columns.
         add_filter( 'manage_product_posts_columns', array( $this->product_columns, 'add_column' ) );
@@ -248,12 +253,15 @@ class TaxoAI_Plugin {
                 'ajax_url' => admin_url( 'admin-ajax.php' ),
                 'nonce'    => wp_create_nonce( 'taxoai_nonce' ),
                 'i18n'     => array(
-                    'analyzing'       => __( 'Analyzing...', 'woocommerce-taxoai' ),
-                    'analyze_now'     => __( 'Analyze Now', 'woocommerce-taxoai' ),
-                    'error'           => __( 'An error occurred. Please try again.', 'woocommerce-taxoai' ),
-                    'limit_reached'   => __( 'Monthly analysis limit reached.', 'woocommerce-taxoai' ),
-                    'no_api_key'      => __( 'Please configure your TaxoAI API key in settings.', 'woocommerce-taxoai' ),
+                    'analyzing'          => __( 'Analyzing...', 'woocommerce-taxoai' ),
+                    'analyze_now'        => __( 'Analyze Now', 'woocommerce-taxoai' ),
+                    'error'              => __( 'An error occurred. Please try again.', 'woocommerce-taxoai' ),
+                    'limit_reached'      => __( 'Monthly analysis limit reached.', 'woocommerce-taxoai' ),
+                    'no_api_key'         => __( 'Please configure your TaxoAI API key in settings.', 'woocommerce-taxoai' ),
                     'search_placeholder' => __( 'Search Google categories...', 'woocommerce-taxoai' ),
+                    'undo_confirm'       => __( 'Restore this product to its state before the last TaxoAI analysis?', 'woocommerce-taxoai' ),
+                    'undoing'            => __( 'Undoing...', 'woocommerce-taxoai' ),
+                    'undo_success'       => __( 'Analysis undone. Reloading...', 'woocommerce-taxoai' ),
                 ),
             ) );
         }
@@ -275,10 +283,18 @@ class TaxoAI_Plugin {
                 true
             );
 
+            // Parse product_ids from URL if redirected from product list bulk action.
+            $query_ids = array();
+            if ( ! empty( $_GET['product_ids'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+                $raw_ids   = sanitize_text_field( wp_unslash( $_GET['product_ids'] ) ); // phpcs:ignore
+                $query_ids = array_values( array_filter( array_map( 'absint', explode( ',', $raw_ids ) ) ) );
+            }
+
             wp_localize_script( 'taxoai-admin-bulk', 'taxoai_bulk', array(
-                'ajax_url' => admin_url( 'admin-ajax.php' ),
-                'nonce'    => wp_create_nonce( 'taxoai_nonce' ),
-                'i18n'     => array(
+                'ajax_url'         => admin_url( 'admin-ajax.php' ),
+                'nonce'            => wp_create_nonce( 'taxoai_nonce' ),
+                'query_product_ids' => $query_ids,
+                'i18n'             => array(
                     'processing'    => __( 'Processing...', 'woocommerce-taxoai' ),
                     'completed'     => __( 'Completed', 'woocommerce-taxoai' ),
                     'failed'        => __( 'Failed', 'woocommerce-taxoai' ),
@@ -288,6 +304,49 @@ class TaxoAI_Plugin {
                 ),
             ) );
         }
+    }
+
+    /**
+     * Register "Analyze with TaxoAI" in the product list bulk actions dropdown.
+     *
+     * @param array $actions Existing bulk actions.
+     * @return array
+     */
+    public function register_bulk_action( $actions ) {
+        $actions['taxoai_bulk_analyze'] = __( 'Analyze with TaxoAI', 'woocommerce-taxoai' );
+        return $actions;
+    }
+
+    /**
+     * Handle the "Analyze with TaxoAI" bulk action.
+     * Redirects to the TaxoAI Bulk Analyzer page with the selected product IDs.
+     *
+     * @param string $redirect_to URL to redirect to after the bulk action.
+     * @param string $action      The action being taken.
+     * @param array  $post_ids    Selected post IDs.
+     * @return string
+     */
+    public function handle_bulk_action( $redirect_to, $action, $post_ids ) {
+        if ( 'taxoai_bulk_analyze' !== $action ) {
+            return $redirect_to;
+        }
+
+        $product_ids = array_map( 'absint', $post_ids );
+        $product_ids = array_filter( $product_ids );
+
+        if ( empty( $product_ids ) ) {
+            return $redirect_to;
+        }
+
+        $url = add_query_arg(
+            array(
+                'page'        => 'taxoai-bulk-analyzer',
+                'product_ids' => implode( ',', $product_ids ),
+            ),
+            admin_url( 'admin.php' )
+        );
+
+        return $url;
     }
 
     /**

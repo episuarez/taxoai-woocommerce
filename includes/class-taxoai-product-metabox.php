@@ -38,6 +38,7 @@ class TaxoAI_Product_Metabox {
         $analyzed   = get_post_meta( $post->ID, '_taxoai_analyzed_at', true );
         $confidence = get_post_meta( $post->ID, '_taxoai_confidence', true );
         $category   = get_post_meta( $post->ID, '_taxoai_google_category', true );
+        $backup     = get_post_meta( $post->ID, '_taxoai_pre_analysis_backup', true );
 
         wp_nonce_field( 'taxoai_metabox_nonce', 'taxoai_metabox_nonce_field' );
         ?>
@@ -83,6 +84,12 @@ class TaxoAI_Product_Metabox {
                 <button type="button" id="taxoai-analyze-btn" class="button button-primary" style="width:100%;">
                     <?php esc_html_e( 'Analyze Now', 'woocommerce-taxoai' ); ?>
                 </button>
+                <?php if ( ! empty( $backup ) && is_array( $backup ) ) : ?>
+                    <button type="button" id="taxoai-undo-btn" class="button" style="width:100%;margin-top:6px;"
+                        data-backed-up-at="<?php echo esc_attr( isset( $backup['backed_up_at'] ) ? $backup['backed_up_at'] : '' ); ?>">
+                        <?php esc_html_e( 'Undo Last Analysis', 'woocommerce-taxoai' ); ?>
+                    </button>
+                <?php endif; ?>
                 <div id="taxoai-loading" class="taxoai-loading" style="display:none;">
                     <span class="spinner is-active" style="float:none;margin:0 8px 0 0;"></span>
                     <?php esc_html_e( 'Analyzing...', 'woocommerce-taxoai' ); ?>
