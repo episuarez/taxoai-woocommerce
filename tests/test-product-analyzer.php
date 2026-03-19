@@ -190,6 +190,8 @@ class Test_TaxoAI_Product_Analyzer extends TestCase {
         WP_Mock::userFunction( 'sanitize_text_field' )
             ->andReturnUsing( function ( $s ) { return $s; } );
 
+        WP_Mock::userFunction( 'get_post_meta' )->andReturn( '' );
+
         // Expect post meta updates for storage.
         WP_Mock::userFunction( 'update_post_meta' )
             ->with( 42, '_taxoai_analysis_result', $response )
@@ -283,6 +285,7 @@ class Test_TaxoAI_Product_Analyzer extends TestCase {
         WP_Mock::userFunction( 'wp_get_attachment_url' )->andReturn( 'https://img.test/1.jpg' );
         WP_Mock::userFunction( 'current_time' )->andReturn( '2025-06-01 12:00:00' );
         WP_Mock::userFunction( 'sanitize_text_field' )->andReturnArg( 0 );
+        WP_Mock::userFunction( 'get_post_meta' )->andReturn( '' );
         WP_Mock::userFunction( 'update_post_meta' )->andReturn( true );
 
         // These should NOT be called because confidence < threshold.
@@ -325,6 +328,7 @@ class Test_TaxoAI_Product_Analyzer extends TestCase {
         WP_Mock::userFunction( 'wp_get_attachment_url' )->andReturn( 'https://img.test/1.jpg' );
         WP_Mock::userFunction( 'current_time' )->andReturn( '2025-06-01 12:00:00' );
         WP_Mock::userFunction( 'sanitize_text_field' )->andReturnArg( 0 );
+        WP_Mock::userFunction( 'get_post_meta' )->andReturn( '' );
         WP_Mock::userFunction( 'update_post_meta' )->andReturn( true );
 
         $this->seo_integrator->shouldReceive( 'apply_seo' )
