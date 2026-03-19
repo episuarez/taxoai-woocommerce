@@ -22,6 +22,13 @@ class TaxoAI_API_Client {
     const TIMEOUT = 15;
 
     /**
+     * Callable used for sleep between retries. Overridable in tests to avoid real delays.
+     *
+     * @var callable
+     */
+    public $sleep_fn = 'sleep';
+
+    /**
      * Get the stored API key.
      *
      * @return string
@@ -148,7 +155,7 @@ class TaxoAI_API_Client {
             // On cURL/WP_Error, only retry on transient network errors.
             if ( is_wp_error( $response ) ) {
                 if ( $attempt < $max_tries ) {
-                    sleep( $delay );
+                    call_user_func( $this->sleep_fn, $delay );
                     $delay *= 2;
                     continue;
                 }
@@ -161,7 +168,7 @@ class TaxoAI_API_Client {
             if ( ( 429 === $code || $code >= 500 ) && $attempt < $max_tries ) {
                 $retry_after = wp_remote_retrieve_header( $response, 'retry-after' );
                 $wait        = $retry_after ? (int) $retry_after : $delay;
-                sleep( min( $wait, 10 ) ); // cap at 10s for UX
+                call_user_func( $this->sleep_fn, min( $wait, 10 ) ); // cap at 10s for UX
                 $delay *= 2;
                 continue;
             }

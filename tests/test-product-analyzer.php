@@ -74,6 +74,7 @@ class Test_TaxoAI_Product_Analyzer extends TestCase {
         $product->shouldReceive( 'get_price' )->andReturn( '29.99' );
         $product->shouldReceive( 'get_image_id' )->andReturn( 101 );
         $product->shouldReceive( 'get_gallery_image_ids' )->andReturn( array( 102, 103 ) );
+        $product->shouldReceive( 'get_category_ids' )->andReturn( array() );
         return $product;
     }
 

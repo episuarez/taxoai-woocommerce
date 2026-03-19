@@ -18,7 +18,8 @@ class Test_TaxoAI_API_Client extends TestCase {
 
     public function setUp(): void {
         parent::setUp();
-        $this->client = new TaxoAI_API_Client();
+        $this->client           = new TaxoAI_API_Client();
+        $this->client->sleep_fn = function() {}; // no-op: avoid real sleep in retry tests
     }
 
     public function tearDown(): void {
@@ -133,7 +134,7 @@ class Test_TaxoAI_API_Client extends TestCase {
             ->andReturn( 'key' );
 
         WP_Mock::userFunction( 'wp_remote_post' )
-            ->once()
+            ->times( 3 ) // retried up to max_tries=3 on 429
             ->andReturn( array(
                 'response' => array( 'code' => 429 ),
                 'headers'  => array( 'retry-after' => '60' ),
@@ -177,7 +178,7 @@ class Test_TaxoAI_API_Client extends TestCase {
         $wp_error->shouldReceive( 'get_error_code' )->andReturn( 'http_request_failed' );
 
         WP_Mock::userFunction( 'wp_remote_post' )
-            ->once()
+            ->times( 3 ) // retried up to max_tries=3 on network error
             ->andReturn( $wp_error );
 
         WP_Mock::userFunction( 'is_wp_error' )
