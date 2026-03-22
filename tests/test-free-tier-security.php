@@ -123,7 +123,7 @@ class Test_Free_Tier_Security extends TestCase {
         $usage = array(
             'tier'                     => 'pro',
             'products_used_this_month' => 500,
-            'products_limit'           => 5000,
+            'products_limit'           => 10000,
         );
 
         WP_Mock::userFunction( 'get_transient' )

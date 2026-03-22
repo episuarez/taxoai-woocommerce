@@ -102,7 +102,7 @@ class Test_TaxoAI_Usage_Tracker extends TestCase {
         $usage = array(
             'tier'                     => 'starter',
             'products_used_this_month' => 100,
-            'products_limit'           => 500,
+            'products_limit'           => 2000,
         );
 
         WP_Mock::userFunction( 'get_transient' )
